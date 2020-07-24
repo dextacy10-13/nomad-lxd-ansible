@@ -3,6 +3,10 @@
 - hosts: localhost
   # run this task in the host
   connection: local
+  # set urls as variables
+  vars:
+    consul_version: "1.4.0"
+    consul_url: "https://releases.hashicorp.com/consul/{{ consul_version }}/consul_{{ consul_version }}_linux_amd64.zip"
   tasks:
     - name: create containers
       # get all host names from inventory
@@ -31,3 +35,23 @@
             ipv4.address: "{{ hostvars[item].ip_address }}"
         # # uncomment if you installed lxd using snap
         # url: unix:/var/snap/lxd/common/lxd/unix.socket
+
+    # ensure cache directory exists
+    - name: create cache directory
+      file:
+        path: cache
+        state: directory
+
+    - name: fetch applications
+      unarchive:
+        src: "{{ item.url }}"
+        dest: cache
+        creates: "cache/{{ item.file }}"
+        remote_src: yes
+      loop:
+        - url: "{{ consul_url }}"
+          file: consul
+
+- hosts: consul_servers
+  roles:
+    - consul_server
