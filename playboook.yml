@@ -6,7 +6,9 @@
   # set urls as variables
   vars:
     consul_version: "1.4.0"
+    nomad_version: "0.8.6"
     consul_url: "https://releases.hashicorp.com/consul/{{ consul_version }}/consul_{{ consul_version }}_linux_amd64.zip"
+    nomad_url: "https://releases.hashicorp.com/nomad/{{ nomad_version }}/nomad_{{ nomad_version }}_linux_amd64.zip"
   tasks:
     - name: create containers
       # get all host names from inventory
@@ -33,14 +35,12 @@
             parent: lxdbr0
             # get ip address from inventory
             ipv4.address: "{{ hostvars[item].ip_address }}"
-        # # uncomment if you installed lxd using snap
-        # url: unix:/var/snap/lxd/common/lxd/unix.socket
+        # uncomment if you installed lxd using snap
+        url: unix:/var/snap/lxd/common/lxd/unix.socket
 
     # ensure cache directory exists
     - name: create cache directory
-      file:
-        path: cache
-        state: directory
+      file: { path: cache, state: directory }
 
     - name: fetch applications
       unarchive:
@@ -51,7 +51,19 @@
       loop:
         - url: "{{ consul_url }}"
           file: consul
+        - url: "{{ nomad_url }}"
+          file: nomad
 
 - hosts: consul_servers
   roles:
     - consul_server
+
+- hosts: nomad_servers
+  roles:
+    - consul_client
+    - nomad_server
+
+- hosts: nomad_clients
+  roles:
+    - consul_client
+    - nomad_client
