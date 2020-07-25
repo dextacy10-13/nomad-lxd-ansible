@@ -38,7 +38,7 @@
             # get ip address from inventory
             ipv4.address: "{{ hostvars[item].ip_address }}"
         # # uncomment if you installed lxd using snap
-        # url: unix:/var/snap/lxd/common/lxd/unix.socket
+        url: unix:/var/snap/lxd/common/lxd/unix.socket
 
     # ensure cache directory exists
     - name: create cache directory
